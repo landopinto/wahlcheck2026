@@ -445,6 +445,32 @@ button {
   font-size: 0.9rem;
 }
 
+.calc-banner {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  border: 1px solid transparent;
+}
+
+.calc-banner.warn {
+  color: #8b3a2f;
+  background: #fbe8e3;
+  border-color: #f2c6b9;
+}
+
+.calc-banner.info {
+  color: #184f40;
+  background: #e2f2ed;
+  border-color: #c8e8de;
+}
+
+.calc-banner.good {
+  color: #1a4e3f;
+  background: #d8efe7;
+  border-color: #b8dfd0;
+}
+
 .hidden {
   display: none;
 }

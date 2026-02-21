@@ -26,6 +26,12 @@ const UI = {
     hideImpact: "Hide answer impact",
     impactColumn: "Impact",
     impactLabel: (pct) => `${pct}pp`,
+    calcNoTopIssues:
+      "Calculation note: you selected 0 top issues. All answered statements are weighted equally (1x).",
+    calcSomeTopIssues: (count, max) =>
+      `Calculation note: you selected ${count}/${max} top issues. Selected top issues get stronger weighting and stronger disagreement penalty.`,
+    calcMaxTopIssues:
+      "Calculation note: you selected all 5 top issues. Top issues have maximum weighting and strongest disagreement penalty.",
     clickHint: "Click to show where you align or disagree",
     alignedTitle: (n) => `In line with your views (${n})`,
     somewhatTitle: (n) => `Somewhat aligned (${n})`,
@@ -68,6 +74,12 @@ const UI = {
     hideImpact: "Antwort-Einfluss ausblenden",
     impactColumn: "Einfluss",
     impactLabel: (pct) => `${pct}pp`,
+    calcNoTopIssues:
+      "Berechnungshinweis: Du hast 0 Top-Themen gewaehlt. Alle beantworteten Thesen werden gleich gewichtet (1x).",
+    calcSomeTopIssues: (count, max) =>
+      `Berechnungshinweis: Du hast ${count}/${max} Top-Themen gewaehlt. Gewaehlte Top-Themen werden staerker gewichtet und bei Widerspruch staerker negativ bewertet.`,
+    calcMaxTopIssues:
+      "Berechnungshinweis: Du hast alle 5 Top-Themen gewaehlt. Top-Themen haben maximale Gewichtung und die staerkste Widerspruchsstrafe.",
     clickHint: "Klicken fuer Uebereinstimmungen und Abweichungen",
     alignedTitle: (n) => `Passt zu deinen Ansichten (${n})`,
     somewhatTitle: (n) => `Teilweise passend (${n})`,
@@ -148,6 +160,7 @@ const resultsNoteEl = document.getElementById("resultsNote");
 const resultsListEl = document.getElementById("resultsList");
 const toggleAllResultsBtn = document.getElementById("toggleAllResults");
 const toggleImpactBtn = document.getElementById("toggleImpact");
+const calcBannerEl = document.getElementById("calcBanner");
 const progressLabelEl = document.getElementById("progressLabel");
 const progressBarEl = document.getElementById("progressBar");
 const topIssueInfoEl = document.getElementById("topIssueInfo");
@@ -167,6 +180,8 @@ const LANGUAGE_KEY = "wahlcheck_lang_v1";
 const TOP_ISSUE_MAX = 5;
 const TOP_ISSUE_WEIGHT = 2;
 const TOP_ISSUE_CONFLICT_MULTIPLIER = 1.5;
+const FULL_DISAGREEMENT_PENALTY = 0.3;
+const TOP_FULL_DISAGREEMENT_PENALTY = 1.1;
 
 let currentLang = localStorage.getItem(LANGUAGE_KEY) === "de" ? "de" : "en";
 let lastComputedScores = [];
@@ -361,6 +376,21 @@ function formatImpactValue(value) {
   return new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }
 
+function renderCalculationBanner() {
+  const count = topIssues.size;
+  calcBannerEl.classList.remove("warn", "info", "good");
+  if (count === 0) {
+    calcBannerEl.textContent = t().calcNoTopIssues;
+    calcBannerEl.classList.add("warn");
+  } else if (count < TOP_ISSUE_MAX) {
+    calcBannerEl.textContent = t().calcSomeTopIssues(count, TOP_ISSUE_MAX);
+    calcBannerEl.classList.add("info");
+  } else {
+    calcBannerEl.textContent = t().calcMaxTopIssues;
+    calcBannerEl.classList.add("good");
+  }
+}
+
 function buildDetailsMarkup(scoreItem) {
   const aligned = [];
   const somewhatAligned = [];
@@ -374,7 +404,7 @@ function buildDetailsMarkup(scoreItem) {
       ? ` <span class="top-issue-badge" title="${t().topIssueTip}">${t().topIssueTag}</span>`
       : "";
     const line = `${questionText}${topBadge} <span class="detail-compare">${t().youParty(answerLabel(d.userAnswer), answerLabel(d.partyAnswer))}</span>`;
-    const impactPct = totalWeight > 0 ? (d.similarity * d.weight * 100) / totalWeight : 0;
+    const impactPct = totalWeight > 0 ? (d.effectiveScore * d.weight * 100) / totalWeight : 0;
     const diff = Math.abs(d.userAnswer - d.partyAnswer);
     if (diff === 0) {
       aligned.push({ line, isTopIssue, impactPct });
@@ -447,6 +477,7 @@ function buildDetailsMarkup(scoreItem) {
 }
 
 function renderResults() {
+  renderCalculationBanner();
   const visibleScores = showAllResults ? lastComputedScores : lastComputedScores.slice(0, 3);
   resultsListEl.innerHTML = visibleScores
     .map((s) => `
@@ -511,12 +542,18 @@ function calculateScores() {
       if (isTopIssue && similarity < 1) {
         weight *= TOP_ISSUE_CONFLICT_MULTIPLIER;
       }
-      sum += similarity * weight;
+      const diff = Math.abs(entry.answer - stance);
+      let effectiveScore = similarity;
+      if (diff === 2) {
+        effectiveScore = effectiveScore - (isTopIssue ? TOP_FULL_DISAGREEMENT_PENALTY : FULL_DISAGREEMENT_PENALTY);
+      }
+      sum += effectiveScore * weight;
       count += weight;
-      details.push({ questionIndex: i, userAnswer: entry.answer, partyAnswer: stance, similarity, weight });
+      details.push({ questionIndex: i, userAnswer: entry.answer, partyAnswer: stance, similarity, effectiveScore, weight });
     });
 
-    return { party: party.name, symbol: party.symbol, logo: party.logo, percent: Math.round((sum / count) * 100), details };
+    const normalized = Math.max(0, Math.min(1, sum / count));
+    return { party: party.name, symbol: party.symbol, logo: party.logo, percent: Math.round(normalized * 100), details };
   });
 
   scores.sort((a, b) => b.percent - a.percent);
