@@ -28,8 +28,10 @@ const UI = {
     impactLabel: (pct) => `${pct}pp`,
     clickHint: "Click to show where you align or disagree",
     alignedTitle: (n) => `In line with your views (${n})`,
+    somewhatTitle: (n) => `Somewhat aligned (${n})`,
     notAlignedTitle: (n) => `Not in line with your views (${n})`,
     noAligned: "No fully aligned answers in your completed set.",
+    noSomewhat: "No somewhat aligned answers in your completed set.",
     noNotAligned: "No conflicting answers in your completed set.",
     youParty: (you, party) => `(You: ${you} | Party: ${party})`,
     answer: { 1: "Agree", 0: "Neutral", "-1": "Disagree", skip: "Skip" },
@@ -68,8 +70,10 @@ const UI = {
     impactLabel: (pct) => `${pct}pp`,
     clickHint: "Klicken fuer Uebereinstimmungen und Abweichungen",
     alignedTitle: (n) => `Passt zu deinen Ansichten (${n})`,
+    somewhatTitle: (n) => `Teilweise passend (${n})`,
     notAlignedTitle: (n) => `Passt nicht zu deinen Ansichten (${n})`,
     noAligned: "Keine vollstaendige Uebereinstimmung in deinen beantworteten Thesen.",
+    noSomewhat: "Keine teilweise passenden Antworten in deinen beantworteten Thesen.",
     noNotAligned: "Keine abweichenden Antworten in deinen beantworteten Thesen.",
     youParty: (you, party) => `(Du: ${you} | Partei: ${party})`,
     answer: { 1: "Stimme zu", 0: "Neutral", "-1": "Stimme nicht zu", skip: "Ueberspringen" },
@@ -359,6 +363,7 @@ function formatImpactValue(value) {
 
 function buildDetailsMarkup(scoreItem) {
   const aligned = [];
+  const somewhatAligned = [];
   const notAligned = [];
   const totalWeight = scoreItem.details.reduce((acc, d) => acc + d.weight, 0);
 
@@ -370,8 +375,14 @@ function buildDetailsMarkup(scoreItem) {
       : "";
     const line = `${questionText}${topBadge} ${t().youParty(answerLabel(d.userAnswer), answerLabel(d.partyAnswer))}`;
     const impactPct = totalWeight > 0 ? (d.similarity * d.weight * 100) / totalWeight : 0;
-    if (d.similarity === 1) aligned.push({ line, isTopIssue, impactPct });
-    else notAligned.push({ line, isTopIssue, impactPct });
+    const diff = Math.abs(d.userAnswer - d.partyAnswer);
+    if (diff === 0) {
+      aligned.push({ line, isTopIssue, impactPct });
+    } else if (diff === 1) {
+      somewhatAligned.push({ line, isTopIssue, impactPct });
+    } else {
+      notAligned.push({ line, isTopIssue, impactPct });
+    }
   });
 
   const alignedHtml = aligned.length
@@ -394,6 +405,16 @@ function buildDetailsMarkup(scoreItem) {
         })
         .join("")
     : `<li>${t().noNotAligned}</li>`;
+  const somewhatHtml = somewhatAligned.length
+    ? somewhatAligned
+        .map((x) => {
+          const impact = showImpactDetails
+            ? `<span class="impact-chip">${t().impactLabel(formatImpactValue(x.impactPct))}</span>`
+            : "";
+          return `<li class="${x.isTopIssue ? "detail-top-issue" : ""}"><span class="detail-text">${x.line}</span>${impact}</li>`;
+        })
+        .join("")
+    : `<li>${t().noSomewhat}</li>`;
 
   const impactHead = showImpactDetails ? `<span class="impact-col-title">${t().impactColumn}</span>` : "";
   const impactListClass = showImpactDetails ? "with-impact" : "";
@@ -406,6 +427,13 @@ function buildDetailsMarkup(scoreItem) {
           ${impactHead}
         </div>
         <ul class="detail-list ${impactListClass}">${alignedHtml}</ul>
+      </div>
+      <div class="detail-block">
+        <div class="detail-head">
+          <h4>${t().somewhatTitle(somewhatAligned.length)}</h4>
+          ${impactHead}
+        </div>
+        <ul class="detail-list ${impactListClass}">${somewhatHtml}</ul>
       </div>
       <div class="detail-block">
         <div class="detail-head">
