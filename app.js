@@ -9,6 +9,7 @@ const UI = {
       "Disclaimer: This is a personal project built with OpenAI. It is not voting advice and does not recommend any party.",
     sources:
       "Purpose: to help you compare how parties answered the SZ questionnaire. Sources: <a href=\"https://gfx.sueddeutsche.de/storytelling-assets/2026-02/wahlcheck/Wahlcheck%20Grafik.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">SZ Wahlcheck questionnaire (PDF)</a>, <a href=\"https://commons.wikimedia.org/wiki/Category:Logos_of_political_parties_in_Germany\" target=\"_blank\" rel=\"noopener noreferrer\">Wikimedia Commons party logos</a>.",
+    backToTop: "Back to top",
     calculate: "Calculate Party Proximity",
     reset: "Reset all answers",
     topIssueBtn: "Top issue",
@@ -57,6 +58,7 @@ const UI = {
       "Hinweis: Das ist ein persoenliches Projekt mit OpenAI. Es ist keine Wahlempfehlung und empfiehlt keine Partei.",
     sources:
       "Zweck: dir zu zeigen, wie Parteien den SZ-Fragebogen beantwortet haben. Quellen: <a href=\"https://gfx.sueddeutsche.de/storytelling-assets/2026-02/wahlcheck/Wahlcheck%20Grafik.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">SZ Wahlcheck Fragebogen (PDF)</a>, <a href=\"https://commons.wikimedia.org/wiki/Category:Logos_of_political_parties_in_Germany\" target=\"_blank\" rel=\"noopener noreferrer\">Wikimedia Commons Parteilogos</a>.",
+    backToTop: "Nach oben",
     calculate: "Partei-Naehe berechnen",
     reset: "Alle Antworten zuruecksetzen",
     topIssueBtn: "Top-Thema",
@@ -173,6 +175,7 @@ const disclaimerEl = document.getElementById("disclaimerText");
 const sourceEl = document.getElementById("sourceText");
 const langEnBtn = document.getElementById("langEn");
 const langDeBtn = document.getElementById("langDe");
+const backToTopBtn = document.getElementById("backToTop");
 
 const STORAGE_KEY = "wahlcheck_answers_v1";
 const TOP_ISSUES_KEY = "wahlcheck_top_issues_v1";
@@ -585,9 +588,18 @@ function applyLanguageStrings() {
   resetAnswersBtn.textContent = txt.reset;
   resultsTitleEl.textContent = txt.resultsTitle;
   resultsNoteEl.textContent = txt.resultsNote;
+  backToTopBtn.textContent = txt.backToTop;
   langEnBtn.classList.toggle("active", currentLang === "en");
   langDeBtn.classList.toggle("active", currentLang === "de");
   renderTopIssueInfo();
+}
+
+function updateBackToTopVisibility() {
+  if (window.scrollY > 450) {
+    backToTopBtn.classList.remove("hidden");
+  } else {
+    backToTopBtn.classList.add("hidden");
+  }
 }
 
 function setLanguage(lang) {
@@ -642,6 +654,13 @@ toggleImpactBtn.addEventListener("click", () => {
   showImpactDetails = !showImpactDetails;
   renderResults();
 });
+
+backToTopBtn.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+window.addEventListener("scroll", updateBackToTopVisibility);
+updateBackToTopVisibility();
 
 resultsListEl.addEventListener("click", (event) => {
   const button = event.target.closest(".result-main");

@@ -471,6 +471,14 @@ button {
   border-color: #b8dfd0;
 }
 
+.back-to-top {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  z-index: 30;
+  box-shadow: 0 6px 20px rgba(17, 32, 27, 0.2);
+}
+
 .hidden {
   display: none;
 }
@@ -496,5 +504,10 @@ button {
 
   .options {
     grid-template-columns: 1fr;
+  }
+
+  .back-to-top {
+    right: 12px;
+    bottom: 12px;
   }
 }
