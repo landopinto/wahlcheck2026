@@ -373,7 +373,7 @@ function buildDetailsMarkup(scoreItem) {
     const topBadge = isTopIssue
       ? ` <span class="top-issue-badge" title="${t().topIssueTip}">${t().topIssueTag}</span>`
       : "";
-    const line = `${questionText}${topBadge} ${t().youParty(answerLabel(d.userAnswer), answerLabel(d.partyAnswer))}`;
+    const line = `${questionText}${topBadge} <span class="detail-compare">${t().youParty(answerLabel(d.userAnswer), answerLabel(d.partyAnswer))}</span>`;
     const impactPct = totalWeight > 0 ? (d.similarity * d.weight * 100) / totalWeight : 0;
     const diff = Math.abs(d.userAnswer - d.partyAnswer);
     if (diff === 0) {

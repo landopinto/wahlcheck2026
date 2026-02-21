@@ -406,6 +406,10 @@ button {
   flex: 1;
 }
 
+.detail-compare {
+  font-size: 0.75em;
+}
+
 .impact-chip {
   justify-self: end;
   width: 120px;
