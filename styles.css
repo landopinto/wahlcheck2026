@@ -169,6 +169,16 @@ button {
   gap: 12px;
 }
 
+.questions-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.questions-footer button {
+  min-width: min(420px, 100%);
+}
+
 .card {
   background: var(--paper);
   border: 1px solid var(--line);

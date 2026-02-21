@@ -155,6 +155,7 @@ const parties = [
 
 const questionsEl = document.getElementById("questions");
 const showResultsBtn = document.getElementById("showResults");
+const showResultsBottomBtn = document.getElementById("showResultsBottom");
 const resetAnswersBtn = document.getElementById("resetAnswers");
 const resultsEl = document.getElementById("results");
 const resultsTitleEl = document.getElementById("resultsTitle");
@@ -527,6 +528,8 @@ function calculateScores() {
     resultsListEl.innerHTML = `<p>${t().answerOne}</p>`;
     toggleAllResultsBtn.classList.add("hidden");
     toggleImpactBtn.classList.add("hidden");
+    controlsEl.insertAdjacentElement("afterend", resultsEl);
+    resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
 
@@ -585,6 +588,7 @@ function applyLanguageStrings() {
   disclaimerEl.textContent = txt.disclaimer;
   sourceEl.innerHTML = txt.sources;
   showResultsBtn.textContent = txt.calculate;
+  showResultsBottomBtn.textContent = txt.calculate;
   resetAnswersBtn.textContent = txt.reset;
   resultsTitleEl.textContent = txt.resultsTitle;
   resultsNoteEl.textContent = txt.resultsNote;
@@ -643,6 +647,7 @@ document.addEventListener("change", (event) => {
 });
 
 showResultsBtn.addEventListener("click", calculateScores);
+showResultsBottomBtn.addEventListener("click", calculateScores);
 resetAnswersBtn.addEventListener("click", resetAllAnswers);
 
 toggleAllResultsBtn.addEventListener("click", () => {
