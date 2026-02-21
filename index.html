@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Munich Wahlcheck</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="eyebrow" id="eyebrowText">Munich Local Election 2026</p>
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button id="langEn" class="secondary lang-btn active" type="button">EN</button>
+            <button id="langDe" class="secondary lang-btn" type="button">DE</button>
+          </div>
+        </div>
+        <h1 id="titleText">Party Match Questionnaire (English)</h1>
+        <p class="lede" id="ledeText">
+          Answer the 34 statements from the SZ Wahlcheck graphic. Your proximity score is shown as a percentage for each party/group.
+        </p>
+      </header>
+
+      <section class="controls">
+        <div class="progress-wrap">
+          <div class="progress-label" id="progressLabel">0 / 34 answered</div>
+          <div class="progress"><span id="progressBar"></span></div>
+        </div>
+        <div class="control-actions">
+          <button id="showResults" type="button">Calculate Party Proximity</button>
+          <button id="resetAnswers" type="button" class="secondary">Reset all answers</button>
+        </div>
+        <div id="topIssueInfo" class="top-issue-info"></div>
+        <div id="saveStatus" class="save-status" aria-live="polite">Not saved</div>
+      </section>
+
+      <section id="results" class="results hidden" aria-live="polite">
+        <h2 id="resultsTitle">Your Proximity Ranking</h2>
+        <p class="small-note" id="resultsNote">
+          Percentages are based on matching your answers with each party profile in this local data file.
+        </p>
+        <div class="results-actions">
+          <button id="toggleAllResults" type="button" class="secondary hidden">Show all parties</button>
+          <button id="toggleImpact" type="button" class="secondary hidden">Show answer impact</button>
+        </div>
+        <div id="resultsList" class="results-list"></div>
+      </section>
+
+      <section id="questions" class="questions"></section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
