@@ -55,6 +55,23 @@ body {
   max-width: 75ch;
 }
 
+.disclaimer,
+.source-text {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  max-width: 95ch;
+}
+
+.source-text a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+
+.source-text a:hover {
+  text-decoration: underline;
+}
+
 .lang-switch {
   display: inline-flex;
   gap: 6px;

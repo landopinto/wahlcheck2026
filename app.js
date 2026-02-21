@@ -4,7 +4,11 @@ const UI = {
     eyebrow: "Munich Local Election 2026",
     title: "Party Match Questionnaire (English)",
     lede:
-      "Answer the 34 statements from the SZ Wahlcheck graphic. Your proximity score is shown as a percentage for each party/group.",
+      "Answer the 34 statements from the SZ Wahlcheck graphic. You can also select up to 5 top issues that matter most to you; those are weighted more strongly in the proximity score.",
+    disclaimer:
+      "Disclaimer: This is a personal project built with OpenAI. It is not voting advice and does not recommend any party.",
+    sources:
+      "Purpose: to help you compare how parties answered the SZ questionnaire. Sources: <a href=\"https://gfx.sueddeutsche.de/storytelling-assets/2026-02/wahlcheck/Wahlcheck%20Grafik.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">SZ Wahlcheck questionnaire (PDF)</a>, <a href=\"https://commons.wikimedia.org/wiki/Category:Logos_of_political_parties_in_Germany\" target=\"_blank\" rel=\"noopener noreferrer\">Wikimedia Commons party logos</a>.",
     calculate: "Calculate Party Proximity",
     reset: "Reset all answers",
     topIssueBtn: "Top issue",
@@ -40,7 +44,11 @@ const UI = {
     eyebrow: "Kommunalwahl Muenchen 2026",
     title: "Partei-Match Fragebogen (Deutsch)",
     lede:
-      "Beantworte die 34 Thesen aus der SZ-Wahlcheck-Grafik. Danach siehst du deine prozentuale Naehe zu den Parteien/Gruppen.",
+      "Beantworte die 34 Thesen aus der SZ-Wahlcheck-Grafik. Du kannst zusaetzlich bis zu 5 Top-Themen markieren; diese werden in der Naehe-Berechnung staerker gewichtet.",
+    disclaimer:
+      "Hinweis: Das ist ein persoenliches Projekt mit OpenAI. Es ist keine Wahlempfehlung und empfiehlt keine Partei.",
+    sources:
+      "Zweck: dir zu zeigen, wie Parteien den SZ-Fragebogen beantwortet haben. Quellen: <a href=\"https://gfx.sueddeutsche.de/storytelling-assets/2026-02/wahlcheck/Wahlcheck%20Grafik.pdf\" target=\"_blank\" rel=\"noopener noreferrer\">SZ Wahlcheck Fragebogen (PDF)</a>, <a href=\"https://commons.wikimedia.org/wiki/Category:Logos_of_political_parties_in_Germany\" target=\"_blank\" rel=\"noopener noreferrer\">Wikimedia Commons Parteilogos</a>.",
     calculate: "Partei-Naehe berechnen",
     reset: "Alle Antworten zuruecksetzen",
     topIssueBtn: "Top-Thema",
@@ -144,6 +152,8 @@ const saveStatusEl = document.getElementById("saveStatus");
 const eyebrowEl = document.getElementById("eyebrowText");
 const titleEl = document.getElementById("titleText");
 const ledeEl = document.getElementById("ledeText");
+const disclaimerEl = document.getElementById("disclaimerText");
+const sourceEl = document.getElementById("sourceText");
 const langEnBtn = document.getElementById("langEn");
 const langDeBtn = document.getElementById("langDe");
 
@@ -504,6 +514,8 @@ function applyLanguageStrings() {
   eyebrowEl.textContent = txt.eyebrow;
   titleEl.textContent = txt.title;
   ledeEl.textContent = txt.lede;
+  disclaimerEl.textContent = txt.disclaimer;
+  sourceEl.innerHTML = txt.sources;
   showResultsBtn.textContent = txt.calculate;
   resetAnswersBtn.textContent = txt.reset;
   resultsTitleEl.textContent = txt.resultsTitle;
