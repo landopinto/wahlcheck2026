@@ -355,6 +355,13 @@ function buildImpactBubbles(question) {
 
 function updateQuestionImpactsToggle() {
   toggleQuestionImpactsBtn.textContent = showQuestionImpacts ? t().hideQuestionImpacts : t().showQuestionImpacts;
+  toggleQuestionImpactsBtn.setAttribute("aria-pressed", showQuestionImpacts ? "true" : "false");
+}
+
+function updateQuestionImpactsVisibilityInDom() {
+  document.querySelectorAll(".question-impact-wrap").forEach((el) => {
+    el.classList.toggle("hidden", !showQuestionImpacts);
+  });
 }
 
 function createQuestionCards(existingAnswerMap = null) {
@@ -405,6 +412,7 @@ function createQuestionCards(existingAnswerMap = null) {
   });
 
   questionsEl.appendChild(fragment);
+  updateQuestionImpactsVisibilityInDom();
   renderTopIssueInfo();
 }
 
@@ -490,7 +498,7 @@ function toggleQuestionImpacts() {
   showQuestionImpacts = !showQuestionImpacts;
   localStorage.setItem(IMPACT_VISIBILITY_KEY, showQuestionImpacts ? "1" : "0");
   updateQuestionImpactsToggle();
-  createQuestionCards(getAnswerMap());
+  updateQuestionImpactsVisibilityInDom();
 }
 
 function answerLabel(value) {
