@@ -46,7 +46,10 @@ const UI = {
     saveLoaded: "Saved from previous session",
     saveReset: "Reset - not saved",
     saveAt: (time) => `Saved at ${time}`,
-    answerOne: "Please answer at least one statement."
+    answerOne: "Please answer at least one statement.",
+    impactHeading: "Potential impact on Munich",
+    showQuestionImpacts: "Show Munich impact",
+    hideQuestionImpacts: "Hide Munich impact"
   },
   de: {
     pageTitle: "Muenchen Wahlcheck - Deutsch",
@@ -95,7 +98,10 @@ const UI = {
     saveLoaded: "Aus letzter Sitzung geladen",
     saveReset: "Zurueckgesetzt - nicht gespeichert",
     saveAt: (time) => `Gespeichert um ${time}`,
-    answerOne: "Bitte beantworte mindestens eine These."
+    answerOne: "Bitte beantworte mindestens eine These.",
+    impactHeading: "Moegliche Auswirkungen auf Muenchen",
+    showQuestionImpacts: "Muenchen-Auswirkungen zeigen",
+    hideQuestionImpacts: "Muenchen-Auswirkungen ausblenden"
   }
 };
 
@@ -157,6 +163,7 @@ const questionsEl = document.getElementById("questions");
 const showResultsBtn = document.getElementById("showResults");
 const showResultsBottomBtn = document.getElementById("showResultsBottom");
 const resetAnswersBtn = document.getElementById("resetAnswers");
+const toggleQuestionImpactsBtn = document.getElementById("toggleQuestionImpacts");
 const resultsEl = document.getElementById("results");
 const resultsTitleEl = document.getElementById("resultsTitle");
 const resultsNoteEl = document.getElementById("resultsNote");
@@ -181,6 +188,7 @@ const backToTopBtn = document.getElementById("backToTop");
 const STORAGE_KEY = "wahlcheck_answers_v1";
 const TOP_ISSUES_KEY = "wahlcheck_top_issues_v1";
 const LANGUAGE_KEY = "wahlcheck_lang_v1";
+const IMPACT_VISIBILITY_KEY = "wahlcheck_show_impacts_v1";
 const TOP_ISSUE_MAX = 5;
 const TOP_ISSUE_WEIGHT = 2;
 const TOP_ISSUE_CONFLICT_MULTIPLIER = 1.5;
@@ -191,6 +199,7 @@ let currentLang = localStorage.getItem(LANGUAGE_KEY) === "de" ? "de" : "en";
 let lastComputedScores = [];
 let showAllResults = false;
 let showImpactDetails = false;
+let showQuestionImpacts = localStorage.getItem(IMPACT_VISIBILITY_KEY) === "1";
 let saveState = { type: "not_saved", time: null };
 let topIssues = new Set();
 let expandedParties = new Set();
@@ -254,6 +263,100 @@ function optionChecked(value, selected) {
   return Number(value) === selected ? "checked" : "";
 }
 
+const QUESTION_IMPACTS = {
+  en: {
+    rent_freeze: [{ dir: "up", label: "Tenant stability" }, { dir: "down", label: "Rental supply" }, { dir: "down", label: "Landlord returns" }],
+    bike_highway: [{ dir: "up", label: "Bike safety" }, { dir: "down", label: "Car lanes" }, { dir: "up", label: "Active mobility" }],
+    basic_income: [{ dir: "up", label: "Income security" }, { dir: "down", label: "City budget" }, { dir: "up", label: "Spending power" }],
+    no_new_business_districts: [{ dir: "down", label: "Job growth" }, { dir: "up", label: "Green space" }, { dir: "down", label: "Tax base" }],
+    no_new_tram_routes: [{ dir: "down", label: "Transit coverage" }, { dir: "up", label: "Car usage" }, { dir: "down", label: "Street access" }],
+    no_road_widening: [{ dir: "up", label: "Air quality" }, { dir: "down", label: "Car throughput" }, { dir: "up", label: "Street safety" }],
+    no_tall_buildings: [{ dir: "up", label: "Skyline control" }, { dir: "down", label: "Housing supply" }, { dir: "up", label: "Heritage look" }],
+    genai_in_schools: [{ dir: "up", label: "Digital skills" }, { dir: "up", label: "Teacher tools" }, { dir: "down", label: "Privacy protection" }],
+    no_business_tax_increase: [{ dir: "up", label: "Business margin" }, { dir: "up", label: "Investment pace" }, { dir: "down", label: "City revenue" }],
+    no_more_refugees: [{ dir: "down", label: "Refugee intake" }, { dir: "down", label: "Integration demand" }, { dir: "up", label: "Shelter capacity" }],
+    ban_short_term_rentals: [{ dir: "up", label: "Long-term rentals" }, { dir: "down", label: "Tourist beds" }, { dir: "up", label: "Neighborhood stability" }],
+    no_less_space_for_cars: [{ dir: "up", label: "Car lanes" }, { dir: "down", label: "Bike lanes" }, { dir: "down", label: "Walkability" }],
+    no_new_mosque: [{ dir: "down", label: "Worship space" }, { dir: "down", label: "Social inclusion" }, { dir: "up", label: "Status quo" }],
+    free_public_transport: [{ dir: "up", label: "Transit ridership" }, { dir: "down", label: "Fare revenue" }, { dir: "up", label: "Mobility access" }],
+    more_cctv: [{ dir: "up", label: "Camera coverage" }, { dir: "up", label: "Case detection" }, { dir: "down", label: "Privacy rights" }],
+    ban_gender_language: [{ dir: "up", label: "Language uniformity" }, { dir: "down", label: "Inclusion climate" }, { dir: "up", label: "Admin consistency" }],
+    no_city_debt: [{ dir: "down", label: "Debt burden" }, { dir: "down", label: "Capital projects" }, { dir: "up", label: "Fiscal reserve" }],
+    no_property_tax_increase: [{ dir: "up", label: "Owner relief" }, { dir: "down", label: "City revenue" }, { dir: "down", label: "Service funding" }],
+    no_open_space_solar: [{ dir: "down", label: "Solar output" }, { dir: "up", label: "Open land" }, { dir: "down", label: "Energy transition" }],
+    no_city_hospital: [{ dir: "down", label: "Bed capacity" }, { dir: "down", label: "Emergency resilience" }, { dir: "up", label: "Budget room" }],
+    no_new_wind: [{ dir: "down", label: "Wind output" }, { dir: "up", label: "Landscape protection" }, { dir: "down", label: "Climate pace" }],
+    no_congestion_charge: [{ dir: "up", label: "Car entries" }, { dir: "down", label: "Clean air" }, { dir: "down", label: "Transit shift" }],
+    no_new_bike_streets: [{ dir: "up", label: "Car access" }, { dir: "down", label: "Bike safety" }, { dir: "down", label: "Mode shift" }],
+    no_third_runway: [{ dir: "down", label: "Airport capacity" }, { dir: "up", label: "Land protection" }, { dir: "down", label: "Noise levels" }],
+    no_urban_farming: [{ dir: "down", label: "Local produce" }, { dir: "up", label: "Buildable land" }, { dir: "down", label: "Community gardens" }],
+    no_higher_parking_fees: [{ dir: "up", label: "Car parking" }, { dir: "down", label: "City revenue" }, { dir: "down", label: "Transit shift" }],
+    no_climate_priority: [{ dir: "down", label: "Emissions cuts" }, { dir: "up", label: "Short-term savings" }, { dir: "down", label: "Green investment" }],
+    no_a100_renovation: [{ dir: "down", label: "Road reliability" }, { dir: "up", label: "Budget savings" }, { dir: "down", label: "Traffic flow" }],
+    no_new_city_housing: [{ dir: "down", label: "Affordable stock" }, { dir: "up", label: "Private role" }, { dir: "down", label: "Rent relief" }],
+    no_superblocks: [{ dir: "up", label: "Car permeability" }, { dir: "down", label: "Public space" }, { dir: "down", label: "Street safety" }],
+    no_subsidized_housing: [{ dir: "down", label: "Social housing" }, { dir: "up", label: "Budget savings" }, { dir: "down", label: "Housing access" }],
+    no_tourist_tax_increase: [{ dir: "up", label: "Visitor demand" }, { dir: "down", label: "Tourism revenue" }, { dir: "up", label: "Hotel margin" }],
+    no_gender_neutral_toilets: [{ dir: "down", label: "Inclusive access" }, { dir: "up", label: "Traditional design" }, { dir: "down", label: "Visitor comfort" }],
+    no_car_space_reallocation: [{ dir: "up", label: "Car capacity" }, { dir: "down", label: "Bike network" }, { dir: "down", label: "Ped safety" }]
+  },
+  de: {
+    rent_freeze: [{ dir: "up", label: "Mietstabilitaet" }, { dir: "down", label: "Mietangebot" }, { dir: "down", label: "Vermieterertrag" }],
+    bike_highway: [{ dir: "up", label: "Radsicherheit" }, { dir: "down", label: "Autospuren" }, { dir: "up", label: "Radmobilitaet" }],
+    basic_income: [{ dir: "up", label: "Einkommensschutz" }, { dir: "down", label: "Stadtbudget" }, { dir: "up", label: "Kaufkraft" }],
+    no_new_business_districts: [{ dir: "down", label: "Jobwachstum" }, { dir: "up", label: "Gruenflaeche" }, { dir: "down", label: "Steuerbasis" }],
+    no_new_tram_routes: [{ dir: "down", label: "Nahverkehrsnetz" }, { dir: "up", label: "Autonutzung" }, { dir: "down", label: "Quartierszugang" }],
+    no_road_widening: [{ dir: "up", label: "Luftqualitaet" }, { dir: "down", label: "Autodurchsatz" }, { dir: "up", label: "Strassensicherheit" }],
+    no_tall_buildings: [{ dir: "up", label: "Skylinekontrolle" }, { dir: "down", label: "Wohnangebot" }, { dir: "up", label: "Stadtbild" }],
+    genai_in_schools: [{ dir: "up", label: "Digitalkompetenz" }, { dir: "up", label: "Lehrerwerkzeuge" }, { dir: "down", label: "Datenschutz" }],
+    no_business_tax_increase: [{ dir: "up", label: "Unternehmensmarge" }, { dir: "up", label: "Investitionstempo" }, { dir: "down", label: "Stadteinnahmen" }],
+    no_more_refugees: [{ dir: "down", label: "Aufnahmequote" }, { dir: "down", label: "Integrationsdruck" }, { dir: "up", label: "Unterkunftsreserve" }],
+    ban_short_term_rentals: [{ dir: "up", label: "Langzeitmieten" }, { dir: "down", label: "Touristenbetten" }, { dir: "up", label: "Quartiersruhe" }],
+    no_less_space_for_cars: [{ dir: "up", label: "Autospuren" }, { dir: "down", label: "Radspuren" }, { dir: "down", label: "Fusswege" }],
+    no_new_mosque: [{ dir: "down", label: "Gebetsraum" }, { dir: "down", label: "Inklusion" }, { dir: "up", label: "Status quo" }],
+    free_public_transport: [{ dir: "up", label: "OePNV Nutzung" }, { dir: "down", label: "Fahrgelderloese" }, { dir: "up", label: "Mobilitaetszugang" }],
+    more_cctv: [{ dir: "up", label: "Kameraabdeckung" }, { dir: "up", label: "Falldetektion" }, { dir: "down", label: "Privatrechte" }],
+    ban_gender_language: [{ dir: "up", label: "Sprachuniform" }, { dir: "down", label: "Inklusionsklima" }, { dir: "up", label: "Verwaltungsklarheit" }],
+    no_city_debt: [{ dir: "down", label: "Schuldenlast" }, { dir: "down", label: "Investitionen" }, { dir: "up", label: "Finanzpuffer" }],
+    no_property_tax_increase: [{ dir: "up", label: "Eigentuemerentlastung" }, { dir: "down", label: "Stadteinnahmen" }, { dir: "down", label: "Servicebudget" }],
+    no_open_space_solar: [{ dir: "down", label: "Solarleistung" }, { dir: "up", label: "Freiflaechen" }, { dir: "down", label: "Energiewende" }],
+    no_city_hospital: [{ dir: "down", label: "Bettenkapazitaet" }, { dir: "down", label: "Notfallstabilitaet" }, { dir: "up", label: "Budgetspielraum" }],
+    no_new_wind: [{ dir: "down", label: "Windleistung" }, { dir: "up", label: "Landschaftsschutz" }, { dir: "down", label: "Klimatempo" }],
+    no_congestion_charge: [{ dir: "up", label: "Autoeinfahrten" }, { dir: "down", label: "Saubere Luft" }, { dir: "down", label: "OePNV Wechsel" }],
+    no_new_bike_streets: [{ dir: "up", label: "Autozugang" }, { dir: "down", label: "Radsicherheit" }, { dir: "down", label: "Verkehrswandel" }],
+    no_third_runway: [{ dir: "down", label: "Flugkapazitaet" }, { dir: "up", label: "Flaechenschutz" }, { dir: "down", label: "Laermpegel" }],
+    no_urban_farming: [{ dir: "down", label: "Lokalproduktion" }, { dir: "up", label: "Bauflaechen" }, { dir: "down", label: "Gemeinschaftsgaerten" }],
+    no_higher_parking_fees: [{ dir: "up", label: "Autoparken" }, { dir: "down", label: "Stadteinnahmen" }, { dir: "down", label: "OePNV Wechsel" }],
+    no_climate_priority: [{ dir: "down", label: "Emissionssenkung" }, { dir: "up", label: "Kurzfristsparen" }, { dir: "down", label: "Grueninvestitionen" }],
+    no_a100_renovation: [{ dir: "down", label: "Strassenzuverlaessigkeit" }, { dir: "up", label: "Budgetsparen" }, { dir: "down", label: "Verkehrsfluss" }],
+    no_new_city_housing: [{ dir: "down", label: "Sozialwohnbestand" }, { dir: "up", label: "Privatrolle" }, { dir: "down", label: "Mietentlastung" }],
+    no_superblocks: [{ dir: "up", label: "Autodurchfahrt" }, { dir: "down", label: "Quartiersraum" }, { dir: "down", label: "Strassensicherheit" }],
+    no_subsidized_housing: [{ dir: "down", label: "Sozialwohnungsbau" }, { dir: "up", label: "Budgetsparen" }, { dir: "down", label: "Wohnzugang" }],
+    no_tourist_tax_increase: [{ dir: "up", label: "Besuchernachfrage" }, { dir: "down", label: "Tourismuserloese" }, { dir: "up", label: "Hotelmarge" }],
+    no_gender_neutral_toilets: [{ dir: "down", label: "Inklusiver Zugang" }, { dir: "up", label: "Traditionsdesign" }, { dir: "down", label: "Besucherkomfort" }],
+    no_car_space_reallocation: [{ dir: "up", label: "Autokapazitaet" }, { dir: "down", label: "Radnetz" }, { dir: "down", label: "Fussgaengerschutz" }]
+  }
+};
+
+function buildImpactBubbles(question) {
+  const localized = QUESTION_IMPACTS[currentLang]?.[question.id] || QUESTION_IMPACTS.en[question.id] || [];
+  const bubbles = localized.slice(0, 3);
+
+  if (bubbles.length === 0) {
+    return [{ arrow: "↑", dir: "up", label: currentLang === "de" ? "Stadteffekt" : "City impact" }];
+  }
+
+  return bubbles.map((bubble) => ({
+    arrow: bubble.dir === "up" ? "↑" : "↓",
+    dir: bubble.dir === "down" ? "down" : "up",
+    label: bubble.label
+  }));
+}
+
+function updateQuestionImpactsToggle() {
+  toggleQuestionImpactsBtn.textContent = showQuestionImpacts ? t().hideQuestionImpacts : t().showQuestionImpacts;
+}
+
 function createQuestionCards(existingAnswerMap = null) {
   const answerMap = existingAnswerMap || getAnswerMap();
   questionsEl.innerHTML = "";
@@ -265,6 +368,16 @@ function createQuestionCards(existingAnswerMap = null) {
     const isTop = topIssues.has(q.id);
     const topIssueLabel = isTop ? t().topIssueBtnActive : t().topIssueBtn;
     const labels = t().answer;
+    const impactBubbles = buildImpactBubbles(q)
+      .map(
+        (bubble) => `
+          <div class="topic-impact-bubble ${bubble.dir}">
+            <span class="impact-arrow">${bubble.arrow}</span>
+            <span>${bubble.label}</span>
+          </div>
+        `
+      )
+      .join("");
     const card = document.createElement("article");
     card.className = "card";
     card.innerHTML = `
@@ -282,6 +395,10 @@ function createQuestionCards(existingAnswerMap = null) {
         <label class="option"><input type="radio" name="q_${q.id}" value="0" ${optionChecked("0", selected)} /> ${labels[0]}</label>
         <label class="option"><input type="radio" name="q_${q.id}" value="-1" ${optionChecked("-1", selected)} /> ${labels[-1]}</label>
         <label class="option"><input type="radio" name="q_${q.id}" value="skip" ${optionChecked("skip", selected)} /> ${labels.skip}</label>
+      </div>
+      <div class="question-impact-wrap ${showQuestionImpacts ? "" : "hidden"}">
+        <p class="topic-impact-title">${t().impactHeading}</p>
+        <div class="topic-impact-bubbles">${impactBubbles}</div>
       </div>
     `;
     fragment.appendChild(card);
@@ -367,6 +484,13 @@ function toggleTopIssue(questionId) {
   saveTopIssues();
   const currentAnswers = getAnswerMap();
   createQuestionCards(currentAnswers);
+}
+
+function toggleQuestionImpacts() {
+  showQuestionImpacts = !showQuestionImpacts;
+  localStorage.setItem(IMPACT_VISIBILITY_KEY, showQuestionImpacts ? "1" : "0");
+  updateQuestionImpactsToggle();
+  createQuestionCards(getAnswerMap());
 }
 
 function answerLabel(value) {
@@ -590,6 +714,7 @@ function applyLanguageStrings() {
   showResultsBtn.textContent = txt.calculate;
   showResultsBottomBtn.textContent = txt.calculate;
   resetAnswersBtn.textContent = txt.reset;
+  updateQuestionImpactsToggle();
   resultsTitleEl.textContent = txt.resultsTitle;
   resultsNoteEl.textContent = txt.resultsNote;
   backToTopBtn.textContent = txt.backToTop;
@@ -649,6 +774,7 @@ document.addEventListener("change", (event) => {
 showResultsBtn.addEventListener("click", calculateScores);
 showResultsBottomBtn.addEventListener("click", calculateScores);
 resetAnswersBtn.addEventListener("click", resetAllAnswers);
+toggleQuestionImpactsBtn.addEventListener("click", toggleQuestionImpacts);
 
 toggleAllResultsBtn.addEventListener("click", () => {
   showAllResults = !showAllResults;

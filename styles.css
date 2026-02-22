@@ -14,7 +14,7 @@
 
 body {
   margin: 0;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   color: var(--ink);
   background:
     radial-gradient(circle at 15% 20%, #d8eadf 0%, transparent 33%),
@@ -244,6 +244,55 @@ button {
 
 .option input {
   margin-right: 6px;
+}
+
+.question-impact-wrap {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.topic-impact-title {
+  margin: 8px 0 4px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #24443a;
+}
+
+.topic-impact-bubble {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.topic-impact-bubbles {
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.topic-impact-bubble.up {
+  color: #2e5f52;
+  background: #f2f8f5;
+  border-color: #dbeae3;
+}
+
+.topic-impact-bubble.down {
+  color: #6e4b44;
+  background: #fbf4f2;
+  border-color: #eddcd7;
+}
+
+.impact-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 .results {
